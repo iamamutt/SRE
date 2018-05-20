@@ -1,0 +1,637 @@
+---
+title: "Supplementary Materials: The Impact of Autistic Traits on Self-Recognition of Body Movements"
+author: "Joseph M. Burling, Akila Kadambi, Tabitha Safari, and Hongjing Lu"
+date: "Last updated: `r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_caption: yes
+    fig_height: 3.6
+    fig_width: 4.2
+    toc: yes
+    pandoc_args: [
+      "--csl", "ieee.csl"
+    ]
+  pdf_document:
+    highlight: kate
+    number_sections: yes
+    fig_caption: yes
+    fig_height: 3.6
+    fig_width: 4.2
+    toc: yes
+    pandoc_args: [
+      "--csl", "apa.csl", "--include-in-header", "float.tex"
+    ]
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: references.bib
+---
+
+```{r setup, include = FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  eval = TRUE,
+  echo = FALSE,
+  comment = "#>",
+  strip.white = FALSE,
+  fig.pos = 'H',
+  tidy = FALSE,
+  fig.align = "center"
+)
+```
+
+```{r pkg_debug, echo=FALSE, eval=FALSE, include=FALSE}
+devtools::load_all(".")
+attach_required_packages()
+sre_models(refit = FALSE, root_dir = NULL)
+seed <- 19850519
+```
+
+```{r rerun_models, eval=FALSE, echo=FALSE, include=FALSE}
+library(SRE)
+sre_models(refit = FALSE, root_dir = "inst/extdata", debug = FALSE)
+```
+
+```{r build_supplement, echo = FALSE, eval=FALSE, include=FALSE}
+devtools::load_all(".")
+SRE:::build_all_supplementary("all")
+```
+
+# Introduction
+
+An updated version of this document and all supplementary materials can be found at the following address.
+
+[`https://github.com/iamamutt/SRE`](https://github.com/iamamutt/SRE)
+
+The data can be obtained without installing the package. Please review the `README.md` file for package installation instructions and how to use the exported R package functions.
+
+## Dataset
+
+The dataset has `r nrow(sre)` rows and contains the following variables. Displayed are the column names, variable types, and a sample of their values.
+
+```{r, results='asis'}
+sre_print <- copy_dt(sre)
+sre_print[, id := as.integer(id)]
+sre_print <- sre_print[order(exp_date)]
+print_data_sample(sre_print, i = seq(1, nrow(sre_print), 73)[1:5], digits = 2)
+```
+
+# Summary statistics
+
+The current section contains tables of summary statistics computed from the package dataset `sre`.
+
+## Subject pool statistics
+
+Information regarding the participant sample, such as their AQ scores, age, sex, and testing delay time is displayed below.
+
+### Participant age
+
+```{r, results='asis'}
+demographics_summary("sub_age", "aq_category", caption = "Participant age by AQ groups.", digits = 3)
+```
+
+### Test delay
+
+```{r, results='asis'}
+demographics_summary("days_elapsed", caption = "Delay between recording and test (days).")
+```
+
+### AQ scores 
+
+```{r, results='asis'}
+demographics_summary("aq_score", "aq_category", caption = "AQ score by AQ groups.", digits = 3)
+```
+
+```{r, results='asis'}
+demographics_summary("aq_score", "sub_sex", caption = "AQ score by sex.", digits = 3)
+```
+
+```{r, results='asis'}
+demographics_summary("aq_score", c("sub_sex", "aq_category"), caption = "AQ score by AQ groups and sex.", digits = 3)
+```
+
+## Accuracy summary statistics
+
+Summary statistics from the self-recognition accuracy column (`recog_acc` from the `sre` dataset) are displayed below.
+
+### Accuracy for each subject, split by AQ group
+
+```{r, results='asis'}
+acc_summary_subject(caption="Accuracy by subject.", digits=2)
+```
+
+### Accuracy for each action
+
+```{r, results='asis'}
+acc_summary_actions(caption="Accuracy by action.", digits=2)
+```
+
+### Accuracy by participant sex
+
+```{r, results='asis'}
+acc_summary_sex(caption="Accuracy by sex.", digits=2)
+```
+
+# Bayesian hierarchical logistic regression models
+
+## Model Specification
+
+### Binomial Likelihood
+
+We model participants' responses as a binary random variable, each participant providing a vector of values $\mathbf{y}$ with either 1 for correct or 0 for incorrect. The model-predicted binary values $\mathbf{\hat{y}}$ of the observed responses $\mathbf{y}$ are the result of (1) applying an inverse link function $g^{-1}$ to the linear predictor $\boldsymbol{\eta}$, providing a probability vector $\tilde{y}$ of real values constrained between 0 and 1, and (2) using a binary step activation function $f$ to map the probability vector back to a binary response vector.
+
+$$
+\begin{aligned}
+\mathbf{y} &= \mathbf{\hat{y}} + \boldsymbol{\epsilon}\\
+\mathbf{\hat{y}} &= f(\mathbf{\tilde{y}})\\
+\mathbf{\tilde{y}} &= g^{-1}(\boldsymbol{\eta})\\
+\boldsymbol{\eta} &= \mathbf{X}\boldsymbol{\alpha}+\mathbf{Z}\boldsymbol{\beta}
+\end{aligned}
+$$
+
+The linear predictor $\boldsymbol{\eta}$ is on the logit scale and takes the form of a regression equation with its input as variables of interest and their estimated coefficients. 
+Generalized linear models use a link function $g$ to map the linear predictor to the dependent variable. If the response variable is Gaussian distributed, then the link and activation functions are simply the identity function.
+
+$$
+\text{Identity}:g(x) = f(x) = x
+$$
+
+To map logit scaled values to a probability vector constrained between 0 and 1 we use the inverse logit link function (sigmoid).
+
+$$
+g^{-1}(\eta) = \frac{1}{1 + e^{-\eta}}
+$$
+
+The binary step activation function creates the binary response vector $\mathbf{\hat{y}}$ and is a simple thresholding operation at equal probability.
+
+$$
+f(\tilde{y}) = 
+\begin{cases}
+	0 & \text{for } \tilde{y} < 0.5\\
+	1 & \text{for } \tilde{y} \ge 0.5
+\end{cases}
+$$
+
+Thus, the combined steps from linear predictor value $\eta_i$ to predicted response $\hat{y}_i$ are 
+
+$$
+\hat{y}_i = f(g^{-1}(\eta_i))
+$$
+
+The general form of a Bernoulli trial with $n$ number of trials is a Binomial distribution with the probability mass function,
+
+$$
+\begin{aligned}
+\binom{n}{y} &\tilde{y}^{y} (1 - \tilde{y})^{n - y}\\
+&\tilde{y} = g^{-1}(\eta)
+\end{aligned}
+$$
+
+
+```{r, results='asis'}
+panda_print(dbinom(structure(0:4, .Names = 0:4), 4, .25, log=TRUE), caption = "Log-likelihoods of getting none to all four responses correct for a specific action, given that there are four options to choose for each trial.")
+```
+
+<!--
+`choose(n, y) * yt^y * ((1-yt)^(n-y))`
+
+$$
+g(x) = \text{ln}\bigg({\frac{x}{1-x}}\bigg)
+$$
+
+$$
+g^{-1}(x) = e^{-\text{ln}(1 + e^{-x})}
+$$
+-->
+
+
+Predictions on the logit scale are estimated from the data matrices $\mathbf{X}$ and $\mathbf{Z}$, and their corresponding coefficients $\boldsymbol{\alpha}$ and $\boldsymbol{\beta}$.
+
+$$
+\hat{y_i} = X_i\boldsymbol{\alpha} + Z_i\boldsymbol{\beta}
+$$
+
+Individual deviations from the mean predicted values (vector $\epsilon$) are referred to here as _error_, and together make up the observed values of $y$.
+
+$$
+\mathbf{y}=\hat{\mathbf{y}}+\boldsymbol{\epsilon}
+$$
+
+No-U-Turn, a variant of the Hamiltonian Monte Carlo algorithm that automates the algorithms parameters, converges to the target probability space for the estimated parameters by avoiding random walks associated with Metropolis-Hastings or Gibbs sampling [@STAN; @NUTS]. MCMC algorithms used to estimate model parameters condition on the data using Bayes rule. Denoting $\boldsymbol{\Theta}$ to refer to the collection of parameters being estimated, then
+
+$$
+p(\boldsymbol{\Theta} | \mathbf{y}) = \frac{p(\mathbf{y}|\boldsymbol{\Theta})p(\boldsymbol{\Theta})}{p(\mathbf{y})}
+$$
+
+The normalizing constant in the denominator of the right-hand side of the equation is ignored given that the numerator is proportional to the left-hand side of the equation. The $p(y|\theta)$ portion from the equation above is the likelihood component, and the prior component, assumptions about how the parameters are distributed, consists of the $p(\theta)$ portion.
+
+### Priors
+
+Further breaking down the priors component $p(\theta)$, we specify the distributions of the parameter vectors $\boldsymbol{\alpha}$ and $\boldsymbol{\beta}$. $\boldsymbol{\alpha}$ is a single column-vector of parameters that account for the observation-level fixed effects (unmodeled, responses at the trial level), which do not vary by group. These are mapped to the fixed effects design matrix $\mathbf{X}$. They don't include an intercept term ($\alpha_0$), since this is estimated separately to avoid unidentifiability issues across multiple levels of a hierarchical model.
+
+$$
+\boldsymbol{\alpha} = \alpha_1, \ldots, \alpha_p
+$$
+
+
+The $\boldsymbol{\alpha}$ coefficients are given a student's *t* distribution with degrees of freedom parameter $\nu$, mean $\mu$, and standard deviation $\sigma$. The *t* prior has fat tails and is robust to estimating outlier coefficients without over-inflating the standard deviation estimate in order to capture these coefficients [@Ghosh2015]. Assuming that the variables have been rescaled to where $X$ is on the unit scale (most values range between 0 and 1), then the following values for the parameters are used
+
+$$
+\boldsymbol{\alpha} \sim t(4, 0, 2.5)
+$$
+
+The average predicted value is estimated by the intercept term and is also given a $t$ prior, but with a standard deviation of 10.
+
+$$
+\boldsymbol{\alpha_0} \sim t(4, 0, 10)
+$$
+
+The vector $\boldsymbol{\beta}$ is a set of parameters for every group member (e.g., a random sample of participants or items in an experiment) that maps to a sparse random effects matrix $\mathbf{Z}$. If there are $K$ parameters to be estimated for every member within a group with $J$ members, then there are $J*K$ parameters to be estimated for $\boldsymbol{\beta}$. The parameters $\boldsymbol{\beta}$ are coerced into a vector from an original $J \times K$ matrix $\boldsymbol{\hat{\beta}}$ by transposing, traversing columns, and stacking the values into a single vector.
+
+$$
+\boldsymbol{\beta} = \operatorname{vectorize}(\boldsymbol{\hat{\beta}}')
+$$
+
+The $\boldsymbol{\hat{\beta}}$ matrix is sampled from a Multivariate Normal distribution with mean vector $\mathbf{U}_j\boldsymbol{\gamma}$ and covariance matrix $\boldsymbol{\Sigma}$. Each row $\mathbf{U}_j$ for all $J$ make up the matrix $\mathbf{U}$, and is a $J \times L$ design matrix of the group-level fixed effects (similar to $X$, but predictors specific to groups), with $L$ being the number of group-level predictors (including the intercept term). 
+
+$$
+\boldsymbol{\hat{\beta}}_j \sim \mathcal{N}(\mathbf{U}_j\boldsymbol{\gamma}, \boldsymbol{\Sigma})
+$$
+
+The matrix $\boldsymbol{\gamma}$ is an $L \times K$ matrix of group level regression coefficients with each row having their own regression equation of group-level fixed effects. These coefficients are also given $t$ priors.
+
+$$
+\boldsymbol{\gamma} \sim t(4, 0, 2.5)
+$$
+
+The covariance matrix $\boldsymbol{\Sigma}$ is derived from multiple components, each with their own set of priors. First, we start by estimating the standard deviation vector $\boldsymbol{\sigma}_\beta$. This ultimately specifies the scale of the varying coefficients in $\boldsymbol{\hat{\beta}}$. We also estimate a separate correlation matrix $\Omega$ that determines how the $\boldsymbol{\hat{\beta}}$ coefficients vary in relation to each other. With these two components we can compute the covariance matrix associated with $\boldsymbol{\hat{\beta}}$.
+
+$$
+\boldsymbol{\Sigma} = \operatorname{diag}(\boldsymbol{\sigma}_\beta)\, \boldsymbol{\Omega}\, \operatorname{diag}(\boldsymbol{\sigma}_\beta)
+$$
+
+The standard deviation vector $\boldsymbol{\sigma}_\beta$ from the covariance matrix $\boldsymbol{\Sigma}$ is composed of the average variance $\tau^2$, and a partitioning vector $\boldsymbol{\pi}$ (unit simplex) that determines the proportion of total variance among the set of $K$ predictors. The sum of the diagonal elements (the trace) of $\boldsymbol{\Sigma}$ is $K\tau^2$.
+
+$$
+\boldsymbol{\sigma}_\beta = K\tau^2\boldsymbol{\pi}
+$$
+
+The average standard deviation $\tau$ is a scalar value and is given a Gamma distribution with some priors on the shape and scale parameters. These influence the overall scale of the covariance matrix, but are typically used to control the bias of the variances, pushing them closer to or further away from zero.
+
+$$
+\begin{aligned}
+\tau &\sim \operatorname{Gamma}(\tau_a, \tau_b)\\
+&\tau_a = 1\\
+&\tau_b = 1
+\end{aligned}
+$$
+
+The variance partitioning vector $\boldsymbol{\pi}$ sums to 1, and can be generated from a Dirichlet distribution given a set of concentration parameters $\boldsymbol{\theta}$.
+
+$$
+\boldsymbol{\pi} \sim \operatorname{Dirichlet}(\boldsymbol{\theta}) = \pi_{1, \ldots, K} \sim \operatorname{Dirichlet}(\theta_{1, \ldots, K})
+$$
+
+The concentration parameters $\boldsymbol{\theta}$ control the spread of the variances in $\boldsymbol{\sigma}^2_\beta$, and themselves are given a Gamma distribution with some concentration prior $\zeta$ for the shape parameter and scale set to 1. If $\zeta < 1$, then variances are largely heterogeneous. When $\zeta = 1$, variance proportions are uniform (no prior information), and when $\zeta > 1$, variances are increasingly homogeneous.
+
+$$
+\begin{aligned}
+\boldsymbol{\theta} \sim &\operatorname{Gamma(\zeta, 1)} \\
+&\zeta = 1
+\end{aligned}
+$$
+
+
+If the shape and scale parameters from a Gamma distribution are constants then using $\boldsymbol{\theta}$ for sampling from the Dirichlet distribution can be skipped and instead,
+
+$$
+\boldsymbol{\pi} = \frac{\boldsymbol{\theta}}{\sum_{k=1}^K\theta_k}
+$$
+
+Lastly, the correlation matrix is given a LKJ prior [estimated from several Beta distributions, see @Lewandowski2009] which takes a single parameter $\eta$ (not to be confused with the linear predictor). The parameter $\eta$ is a regularization term, which controls the strength of correlations among all pairwise predictors. If $\eta > 1$, then stronger correlations are less likely by constraining the diagonal elements to be "peaked", or maintain larger values relative to the off-diagonal elements. If $\eta < 1$, the values on the off-diagonal become larger and stronger correlations are more likely. A value of 1 is Uniformly distributed over all possible correlation matrices, and a value of 2 corresponds to $L2$ regularization.
+
+$$
+\begin{aligned}
+\boldsymbol{\Omega} \sim &\operatorname{LKJcorr}(\eta) \\
+&\eta = 2
+\end{aligned}
+$$
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+library(rstanarm)
+```
+
+## MCMC convergence information
+
+Trace plots of each MCMC chain (to ensure samples are not stuck within some region of the target distribution), $\hat{R}$ statistics for gauging chain divergence ($\hat{R}=1$ is best), and the effective number of samples from the total sample size (a ratio of 1 is best) are shown.
+
+```{r, echo=FALSE, eval=TRUE}
+sre_models(refit = FALSE, root_dir = NULL)
+seed <- 19850519
+```
+
+### Model 1 convergence diagnostics plots
+
+```{r m1_mcmc, eval = TRUE, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2.15}
+mcmc_checks(stanreg_full)
+```
+
+### Model 2 convergence diagnostics plots
+
+```{r m2_mcmc, eval = TRUE, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2.15}
+mcmc_checks(stanreg_alt)
+```
+
+### Model 3 convergence diagnostics plots
+
+```{r m3_mcmc, eval = TRUE, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2.15}
+mcmc_checks(stanreg_null)
+```
+
+
+## Posterior predictive density intervals
+
+We draw samples from the posterior distributions of predicted values for each observation. The predicted value for each row in the original dataset will be a *distribution* of predicted values given one of the model equations, that is, each observation has a corresponding predictive distribution given the model formulation and the data. This results in $N$ MCMC samples per data point (rows in the dataset), and $N_{rows} \times N_{mcmc}$ total predictions.
+
+To load the fitted model data and posterior distributions from the `SRE` package, run the `sre_models` function with the following options.
+
+```{r, echo=TRUE, eval=FALSE}
+sre_models(refit = FALSE, root_dir = NULL)
+seed <- 19850519
+```
+
+This will load the model objects into the global workspace. The posterior predictive distributions and the associated data can be merged with the `merge_data_and_posterior` function.
+
+```{r, echo=TRUE}
+ppd.full <- merge_data_and_posterior(stanreg_full,
+                                     post_fun = rstanarm::posterior_linpred,
+                                     transform = TRUE,
+                                     seed = seed)
+
+ppd.full.binary <- merge_data_and_posterior(stanreg_full, seed = seed)
+```
+
+### Subjects
+
+```{r, results='asis'}
+posterior_action_acc_subj(ppd.full,
+                           caption = "Each participants' posteriror median accuracy, separated by AQ group intervals.")
+```
+
+
+### AQ group
+
+Posterior prediction comparisons between low vs. high scoring subjects.
+
+```{r, results='asis'}
+posterior_acc_aq_intervals(ppd.full,
+                           caption = "AQ group, posterior intervals.")
+```
+
+### Sex differences
+
+Posterior prediction comparisons between male and female for each AQ group.
+
+```{r, results='asis'}
+posterior_gender_diff(ppd.full,
+                      caption = "Male-Female acc. diff., posterior intervals.")
+```
+
+### Contrasts
+
+Posterior predictive density intervals for main, interaction, and simple effects.
+
+```{r}
+aq_act_contrasts <- posterior_aq_action_contrasts(ppd.full)
+```
+
+```{r, results='asis'}
+posterior_aq_action_intervals(aq_act_contrasts,
+                              digits = 2,
+                              caption = "Posterior contrast intervals.")
+```
+
+```{r, results='asis'}
+contrast_effect_sizes(ppd.full.binary,
+                      digits = 2,
+                      caption = "Posterior contrast effect size intervals.")
+```
+
+
+### Viewpoint
+
+Difference in participants' rotations of actions from the baseline position (recorded angle).
+
+```{r, results='asis'}
+posterior_viewpoint_diff(ppd.full,
+                         caption = "Viewpoint, posterior intervals.",
+                         digits=3)
+```
+
+## `stanreg` model summaries
+
+Coefficient information from each of the fitted models.
+
+### Model 1 - Full model
+
+```{r, results='asis'}
+n_coef(stanreg_full)
+print_stanreg_results(`M1 (Full)` = stanreg_full)
+```
+
+#### LOO-CV for Model 1
+
+```{r, results='asis'}
+print(loo_full, digits=3)
+```
+
+
+### Model 2 - Alternative model with no interaction
+
+```{r, results='asis'}
+n_coef(stanreg_alt)
+print_stanreg_results(`M2 (Alternative)` = stanreg_alt)
+```
+
+#### LOO-CV for Model 2
+
+```{r, results='asis'}
+print(loo_alt, digits=3)
+```
+
+### Model 3 - Null model has no AQ or action type effects.
+
+```{r, results='asis'}
+n_coef(stanreg_null)
+print_stanreg_results(`M3 (Null)` = stanreg_null)
+```
+
+#### LOO-CV for Model 3
+
+```{r, results='asis'}
+print(loo_null, digits=3)
+```
+
+## Model comparisons
+
+### Expected log pointwise predictive densities
+
+Approximate (Pareto-smoothed sampling) Leave-One-Out Cross-validation comparisons between Models 1--3.
+
+```{r, results='asis'}
+print_loo_results(`Ful(M1)` = loo_full,
+                  `Alt(M2)` = loo_alt,
+                  `Nul(M3)` = loo_null)
+```
+
+### Bayesian R-squared comparisons
+
+```{r}
+ppd.alt <- merge_data_and_posterior(stanreg_alt,
+                                     post_fun = rstanarm::posterior_linpred,
+                                     transform = TRUE,
+                                     seed = seed)
+
+ppd.null <- merge_data_and_posterior(stanreg_null,
+                                     post_fun = rstanarm::posterior_linpred,
+                                     transform = TRUE,
+                                     seed = seed)
+```
+
+
+```{r}
+compare_rsquared(ppd.full, ppd.alt, ppd.null)
+```
+
+### Posterior predictive checks
+
+Comparisons between the mean accuracy for each subject and the mean posterior predictive accuracy density for each MCMC sample and subject. The plots are split by AQ group.
+
+```{r, pp_checks, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2.15}
+model_vs_data(ppd.full, "M1 (Full)", 4.75, 500, seed = seed)
+model_vs_data(ppd.alt, "M2 (Alt)", 4.75, 500, seed = seed)
+model_vs_data(ppd.null, "M3 (Null)", 4.75, 500, seed = seed)
+```
+
+
+
+# Additional Figures
+
+```{r save_pub_figs, results='hide', include=FALSE, message=FALSE, warning=FALSE}
+if (getOption("SRE.mejr_pkg")) {
+  options(SRE.mejr_theme = TRUE)
+  knit_path_adj <- ifelse("NAMESPACE" %in% list.files(), ".", "..")
+  fig_dir <- file.path(knit_path_adj, "inst", "extdata", "figures")
+  fig_dir <- SRE:::make_dir(fig_dir)
+  
+  mejr::save_plot(
+    turtles_aq_act_contrasts(aq_act_contrasts),
+    file = file.path(fig_dir, "cint_fig"),
+    format = "both",
+    width = 5,
+    height = 3,
+    font = getOption("SRE.font_family")
+  )
+  
+  mejr::save_plot(
+    boxplot_action_acc(),
+    file = file.path(fig_dir, "action_fig"),
+    format = "both",
+    width = 3.75,
+    height = 3.25,
+    font = getOption("SRE.font_family")
+  )
+  
+  mejr::save_plot(
+    boxplot_aq_action_acc(),
+    file = file.path(fig_dir, "aq_act_data_fig"),
+    format = "both",
+    width = 2.333,
+    height = 2.8,
+    font = getOption("SRE.font_family")
+  )
+}
+
+options(SRE.mejr_theme = FALSE)
+```
+
+## AQ group by action type, bar plot
+
+```{r, fig.width=3.25, fig.cap="Mean self-recognition accuracy by AQ group and action type. Accuracy is averaged over viewpoints. Chance performance is shown by the grey horizontal line at 0.25, and within-subjects standard errors are shown for each bar"}
+interaction_plot_bar()
+```
+
+## AQ group by action type, histograms
+
+```{r, fig.cap="Histograms of each accuracy score by AQ group and action type. Accuracy is averaged over viewpoints. The dotted vertical lines indicate the mean accuracy for a given panel. The shaded region is the mean accuracy range across panels."}
+hist_plot_acc()
+```
+
+## Posterior accuracy by actions
+
+```{r, fig.width=6.125, fig.cap="Posterior distributions of self-recognition accuracy for each action performed by the participants, categorized by action type. The white point in each distribution is the mean accuracy computed from the data, collapsed across AQ groups and viewpoint. The vertical grey line at 0.25 represents chance performance."}
+plot_action_post_acc(posterior_action_acc_means(ppd.full.binary))
+```
+
+## AQ score by action type with gender points
+
+```{r, fig.cap="Interactions between AQ score and action complexity."}
+interaction_scatter()
+```
+
+# Using the exported SRE package functions
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+Loading the package materials
+
+```{r, echo=TRUE, message=FALSE}
+library(SRE)
+```
+
+Calling the package dataset
+
+```{r}
+sre
+```
+
+Alternatively, you may import using the `import_sre()` function to customize how the data is imported. If `r raw=TRUE` then this will import the dataset without refactoring the variables or standardizing.
+
+```{r}
+sre <- import_sre(raw=TRUE)
+```
+
+## Refitting the models
+
+To load or refit all the models, use the `sre_models` function. If `root_dir=NULL` and `refit=TRUE`, this will refit the default models and save all refitted models to a directory called `sre_fitted_models` in your OS specific user/home directory. If `refit=FALSE` then it will load the saved models from the package's external data folder.
+
+```{r}
+sre_models(refit = TRUE, root_dir = NULL)
+```
+
+If you specify a path for `root_dir`, all models can be saved and loaded from there. The `debug` option just runs a few iterations for each model.
+
+```{r}
+model_refit_dir <- "./sre_models_example"
+sre_models(refit = TRUE, root_dir = model_refit_dir, debug = FALSE)
+```
+
+### Loading fitted models
+
+```{r}
+sre_models(refit = FALSE, root_dir = NULL)
+```
+
+This will load the following R objects into the global environment.
+
+- `stanreg_full`: Model 1
+- `loo_full`: LOO for Model 1
+- `stanreg_alt`: Model 2
+- `loo_alt`: LOO for Model 2
+- `stanreg_null`: Model 3
+- `loo_null`: LOO for Model 3
+
+# References
