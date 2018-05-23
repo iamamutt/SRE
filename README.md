@@ -33,7 +33,7 @@ repository. Run the code below to download and install:
 devtools::install_github("iamamutt/SRE", dependencies=TRUE)
 ```
 
-If successful, the package should now be installed. Load the package as you normally would any other package (see below). Repeat steps 2–3 if there are updates to the package or to reinstall on another computer. You should now be able to use the package materials and should see it in your packages tab if using RStudio.
+If successful, the package should now be installed. Load the package as you normally would any other package (see below). Repeat these steps if there are updates to the package or to reinstall on another computer. You should now be able to use the package materials and should see it in your packages tab if using RStudio.
 
 ``` r
 library(SRE)

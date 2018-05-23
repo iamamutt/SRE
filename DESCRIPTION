@@ -18,9 +18,11 @@ Imports:
   data.table (>= 1.10.4),
   magrittr,
   ggplot2,
-  pander
+  pander,
+  rbaes,
+  ggdistribute
 Remotes:
-  iamamutt/ggdistribute
+  iamamutt/ggdistribute,
   iamamutt/rbaes
 Suggests:
     knitr,
