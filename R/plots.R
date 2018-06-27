@@ -13,7 +13,7 @@ turtles_aq_act_contrasts <- function(fx) {
     ggdistribute::geom_posterior(
       aes(x = value),
       size = 0.15, ci_width = 0.90,
-      fill = "#D7E0C5", brighten = c(1.18, 1, 1.125),
+      fill = "#D7E0C5", brighten = c(3, 0, 1.333),
       midline_color = opts$blk, interval_type = "ci",
       center_stat = "mean", mirror = FALSE,
       adjust = 1.0, n = 1024, trim = .005, cut = 1
@@ -401,7 +401,7 @@ model_vs_data <- function(ppd_linpred, mname = "", ymax = NULL, n = 500, seed = 
 
 plot_setup <- function(font_size = NULL) {
   if (getOption("SRE.mejr_theme")) {
-    theme_set(mejr::theme_mejr(
+    theme_set(ggdistribute::theme_mejr(
       base_size = font_size %||% 10, madj = 1,
       font_family = getOption("SRE.font_family")))
   } else {

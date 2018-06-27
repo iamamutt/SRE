@@ -180,6 +180,7 @@ fit_null_model <- function(sre_data, save_dir = NULL, debug = FALSE) {
 
 # helpers -----------------------------------------------------------------
 
+#' @export
 n_coef <- function(stanreg) {
   beta <- fixef(stanreg)
   gamma <- ranef(stanreg)

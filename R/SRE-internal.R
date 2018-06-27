@@ -101,7 +101,7 @@ build_all_supplementary <- function(doc = c(
   html_file <- paste0(basefile, ".html")
   # tex_file <- paste0(basefile, ".tex")
   on.exit(unlink(c(pdf_file, html_file, r_file)))
-  rmarkdown::render(rmd, output_format = match.arg(doc), clean = TRUE)
+  rmarkdown::render(rmd, output_format = match.arg(doc), clean = FALSE)
   knitr::purl(rmd, r_file, documentation = 0)
   file.copy(c(pdf_file, html_file, r_file), to = output, overwrite = TRUE)
   invisible()

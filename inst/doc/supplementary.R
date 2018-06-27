@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 ## sre_models(refit = FALSE, root_dir = "inst/extdata", debug = FALSE)
 ## devtools::load_all(".")
 ## SRE:::build_all_supplementary("all")
+## # SRE:::build_all_supplementary("pdf_document")
 sre_print <- copy_dt(sre)
 sre_print[, id := as.integer(id)]
 sre_print <- sre_print[order(exp_date)]
@@ -96,6 +97,7 @@ if (getOption("SRE.mejr_pkg")) {
     format = "both",
     width = 5,
     height = 3,
+    res=600,
     font = getOption("SRE.font_family")
   )
   
@@ -105,6 +107,7 @@ if (getOption("SRE.mejr_pkg")) {
     format = "both",
     width = 3.75,
     height = 3.25,
+    res=600,
     font = getOption("SRE.font_family")
   )
   
@@ -114,6 +117,7 @@ if (getOption("SRE.mejr_pkg")) {
     format = "both",
     width = 2.333,
     height = 2.8,
+    res=600,
     font = getOption("SRE.font_family")
   )
 }

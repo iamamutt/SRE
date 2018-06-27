@@ -3,14 +3,6 @@ title: "Supplementary Materials: The Impact of Autistic Traits on Self-Recogniti
 author: "Joseph M. Burling, Akila Kadambi, Tabitha Safari, and Hongjing Lu"
 date: "Last updated: `r Sys.Date()`"
 output:
-  rmarkdown::html_vignette:
-    fig_caption: yes
-    fig_height: 3.6
-    fig_width: 4.2
-    toc: yes
-    pandoc_args: [
-      "--csl", "ieee.csl"
-    ]
   pdf_document:
     highlight: kate
     number_sections: yes
@@ -18,9 +10,13 @@ output:
     fig_height: 3.6
     fig_width: 4.2
     toc: yes
-    pandoc_args: [
-      "--csl", "apa.csl", "--include-in-header", "float.tex"
-    ]
+    pandoc_args: ["--csl", "apa.csl", "--include-in-header", "float.tex"]
+  rmarkdown::html_vignette:
+    fig_caption: yes
+    fig_height: 3.6
+    fig_width: 4.2
+    toc: yes
+    pandoc_args: ["--csl", "ieee.csl"]
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEncoding{UTF-8}
@@ -56,6 +52,7 @@ sre_models(refit = FALSE, root_dir = "inst/extdata", debug = FALSE)
 ```{r build_supplement, echo = FALSE, eval=FALSE, include=FALSE}
 devtools::load_all(".")
 SRE:::build_all_supplementary("all")
+# SRE:::build_all_supplementary("pdf_document")
 ```
 
 # Introduction
@@ -531,6 +528,7 @@ if (getOption("SRE.mejr_pkg")) {
     format = "both",
     width = 5,
     height = 3,
+    res=600,
     font = getOption("SRE.font_family")
   )
   
@@ -540,6 +538,7 @@ if (getOption("SRE.mejr_pkg")) {
     format = "both",
     width = 3.75,
     height = 3.25,
+    res=600,
     font = getOption("SRE.font_family")
   )
   
@@ -549,6 +548,7 @@ if (getOption("SRE.mejr_pkg")) {
     format = "both",
     width = 2.333,
     height = 2.8,
+    res=600,
     font = getOption("SRE.font_family")
   )
 }
