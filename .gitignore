@@ -20,13 +20,15 @@
 README.Rmd
 src-i386
 src-x64
-vignettes/*.html
-vignettes/*.pdf
-vignettes/*.tex
 
 SRE.Rproj
 SRE.code-workspace
 inst/extdata/figures/*.png
-inst/extdata/
-data
+inst/extdata/figures/*.jpg
 vignettes/supplementary_files
+vignettes/supplementary.tex
+
+# SRE data
+inst/extdata/
+data/
+
