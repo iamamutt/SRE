@@ -5,7 +5,9 @@
 \alias{SRE-package}
 \title{Self-Recognition Experiment (SRE)}
 \description{
-Descrip
+The \code{SRE} package (Self-recognition Experiment) provides
+supplementary analyses and data for the paper
+\emph{The Impact of Autistic Traits on Self-Recognition of Body Movements}.
 }
 \details{
 See \code{help(package = "SRE")} for a list of functions.
