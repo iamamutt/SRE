@@ -10,10 +10,10 @@
 #' import_sre()         # load from compressed RData
 #' import_sre(TRUE)     # reload from package CSV data
 #' import_sre(raw=TRUE) # load without refactoring and scaling.
-import_sre <- function(from_csv = FALSE, raw = FALSE) {
+import_sre <- function(from_csv=FALSE, raw=FALSE) {
   if (!from_csv && !raw) {
-    data(sre, package = "SRE", envir = environment())
-    return(sre)
+    data(SRE, package="SRE", envir=environment())
+    return(SRE)
   }
 
   # read in pre-sanitized data
@@ -25,21 +25,22 @@ import_sre <- function(from_csv = FALSE, raw = FALSE) {
 
   # change the following variables to factors
   to_fac <- c(
-    "id", "sub_sex", "aq_category", "action_category",
-    "action", "recog_corr_box", "recog_resp_box")
+    "id", "sub_sex", "aq_category", "action_category", "action",
+    "recog_corr_box", "recog_resp_box"
+  )
 
   # rescale numerics
   to_scale <- c("sub_age", "aq_score", "recog_rt", "trial")
 
   # clean up for model
   sre_raw %>%
-    .[, eval(to_fac) := lapply(.SD, as.factor), .SDcols = to_fac] %>%
+    .[, eval(to_fac) := lapply(.SD, as.factor), .SDcols=to_fac] %>%
     .[, aq_category := relevel(aq_category, "high symptoms")] %>%
     .[, sub_sex := relevel(sub_sex, "f")] %>%
-    .[, angle := factor(angle, levels = c(180L, 0L, 135L, 247L))] %>%
-    .[, eval(paste0(to_scale, "_scaled")) := lapply(
-      .SD, rbaes::unit_scale
-    ), .SDcols = to_scale] %>%
+    .[, angle := factor(angle, levels=c(180L, 0L, 135L, 247L))] %>%
+    .[, eval(paste0(to_scale, "_scaled")) := lapply(.SD, unit_scale),
+      .SDcols=to_scale
+    ] %>%
     .[, aq_score_standard := aq_standardize(aq_score)] %>%
     as.data.frame()
 }
@@ -60,19 +61,17 @@ import_sre <- function(from_csv = FALSE, raw = FALSE) {
 #' [Ruzich, E. et. al. (2014)](https://molecularautism.biomedcentral.com/articles/10.1186/2040-2392-6-2)
 #' @examples
 #' aq_standardize(25)
-aq_standardize <- function(x, mu = 16.94, sigma = 5.59) {
+aq_standardize <- function(x, mu=16.94, sigma=5.59) {
   sigma_dbl <- 2 * sigma
   adj <- 0.5
-  structure(adj + ((x - mu) / sigma_dbl),
-    center = mu,
-    scale = sigma_dbl, adj = adj)
+  structure(adj + ((x - mu) / sigma_dbl), center=mu, scale=sigma_dbl, adj=adj)
 }
 
 # helpers -----------------------------------------------------------------
 
 #' @export
 sre_extdata <- function() {
-  system.file("extdata", package = "SRE", mustWork = TRUE)
+  system.file("extdata", package="SRE", mustWork=TRUE)
 }
 
 #' @export
@@ -81,29 +80,27 @@ sre_file_path <- function() {
 }
 
 #' @export
-print_data_sample <- function(x, n = 5, i = seq_len(n), ...) {
+print_data_sample <- function(x, n=5, i=seq_len(n), ...) {
   nx <- nrow(x)
   cont <- ifelse(n < nx, "...", NA_character_)
   invisible(sapply(
     names(x),
     function(nm) {
       vals <- x[[nm]]
-      val_sample <- prettyNum(vals[i], ...)
-      if (n > 1) {
+      vals_sub <- na.omit(vals[i][seq_len(n)])
+      val_sample <- paste0("`", prettyNum(vals_sub, ...), "`")
+      if (length(val_sample) > 1L) {
         val_sample <- paste0(
-          "[", paste(na.omit(c(val_sample, cont)),
-            collapse = ", "), "]"
+          "[", paste(na.omit(c(val_sample, cont)), collapse=", "), "]"
         )
       }
-      cat(sprintf(
-        "\n- `%s` (*%s*): %s", nm,
-        class(vals), val_sample))
+      cat(sprintf("\n- `%s` (*%s*): %s", nm, class(vals), val_sample))
     }))
   cat("\n")
 }
 
 #' @export
-copy_dt <- function(x = NULL, shorten_names = FALSE) {
+copy_dt <- function(x=NULL, shorten_names=FALSE) {
   if (is.null(x)) {
     x <- import_sre()
   }
@@ -115,17 +112,16 @@ copy_dt <- function(x = NULL, shorten_names = FALSE) {
 
     if ("aq_category" %in% n) {
       x <- dt_fac_rename(
-        x, "aq_category",
-        c("high symptoms", "low symptoms", "all"),
+        x, "aq_category", c("high symptoms", "low symptoms", "all"),
         c("High", "Low", "."), ".")
       setnames(x, "aq_category", "AQ")
     }
 
     if ("action_category" %in% n) {
       x <- dt_fac_rename(
-        x, "action_category",
-        c("simple actions", "complex actions", "all"),
-        c("Simple", "Complex", "."), ".")
+        x, "action_category", c("simple actions", "complex actions", "all"),
+        c("Simple", "Complex", "."), "."
+      )
       setnames(x, "action_category", "Actions")
     }
 
@@ -134,9 +130,7 @@ copy_dt <- function(x = NULL, shorten_names = FALSE) {
     }
 
     if ("sub_sex" %in% n) {
-      x <- dt_fac_rename(
-        x, "sub_sex", c("f", "m", "all"),
-        c("F", "M", "."), ".")
+      x <- dt_fac_rename(x, "sub_sex", c("f", "m", "all"), c("F", "M", "."), ".")
       setnames(x, "sub_sex", "Sex")
     }
   }
@@ -144,9 +138,30 @@ copy_dt <- function(x = NULL, shorten_names = FALSE) {
 }
 
 #' @export
-panda_print <- function(x, caption = "SRE Table.", digits = 5,
-                        justify = "left", ...) {
-  pander::pandoc.table(x,
-    caption = caption, digits = digits,
-    justify = justify, ...)
+panda_print <- function(x, caption="SRE Table.", digits=5, justify="left", ...) {
+  pander::pandoc.table(x, caption=caption, digits=digits, justify=justify, ...)
+}
+
+# data summaries ------------------------------------------------------------------
+
+get_dt_by_cond_grps <- function(cond_grps=c("aq_category", "action_category"), add_by=NULL,
+                                omit=NULL) {
+  by <- c(cond_grps, add_by)
+  dt <- copy_dt() %>%
+    .[, summary_tbl(recog_acc), by=by]
+
+  if (!is.null(add_by)) {
+    dt[, eval(c("cond_min", "cond_max")) := range_tbl(mean), cond_grps]
+  }
+
+  if (!is.null(omit)) {
+    dt[, eval(omit) := NULL]
+  }
+  dt[order(get(cond_grps), -mean)]
+}
+
+get_dt_grp_stat <- function(x, grps, fun=mean) {
+  copy_dt(x) %>%
+    .[, .(.y=fun(.y)), by=grps] %>%
+    .[, c(grps, ".y"), with=FALSE]
 }

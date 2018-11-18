@@ -1,13 +1,13 @@
 Package: SRE
-Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Date: 2018-5-02
+Title: Supplementary Materials
+Version: 0.0.1.0
+Date: 2018-11-15
 Authors@R:
     c(person(
         "Joseph M.", "Burling", ,
         "josephburling@gmail.com",
         c("aut", "cre")))
-Description: What the package does (one paragraph).
+Description: Supplementary Materials: The Impact of Autistic Traits on Self-Recognition of Body Movements
 URL: http://cvl.psych.ucla.edu/
 License: MIT
 Encoding: UTF-8
@@ -19,15 +19,13 @@ Imports:
   magrittr,
   ggplot2,
   pander,
-  rbaes,
-  ggdistribute
-Remotes:
-  iamamutt/ggdistribute,
-  iamamutt/rbaes
+  ggdistribute,
+  extrafont
 Suggests:
     knitr,
     rmarkdown,
-    extrafont
+    devtools,
+    usethis
 VignetteBuilder: knitr
 Roxygen: list(markdown=TRUE)
-RoxygenNote: 6.0.1.9000
+RoxygenNote: 6.1.1

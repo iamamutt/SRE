@@ -33,26 +33,9 @@ knitr::opts_chunk$set(
   strip.white = FALSE,
   fig.pos = 'H',
   tidy = FALSE,
-  fig.align = "center"
+  fig.align = "center",
+  warning = FALSE
 )
-```
-
-```{r pkg_debug, echo=FALSE, eval=FALSE, include=FALSE}
-devtools::load_all(".")
-attach_required_packages()
-sre_models(refit = FALSE, root_dir = NULL)
-seed <- 19850519
-```
-
-```{r rerun_models, eval=FALSE, echo=FALSE, include=FALSE}
-library(SRE)
-sre_models(refit = FALSE, root_dir = "inst/extdata", debug = FALSE)
-```
-
-```{r build_supplement, echo = FALSE, eval=FALSE, include=FALSE}
-devtools::load_all(".")
-SRE:::build_all_supplementary("all")
-# SRE:::build_all_supplementary("pdf_document")
 ```
 
 # Introduction
@@ -63,20 +46,24 @@ An updated version of this document and all supplementary materials can be found
 
 The data can be obtained without installing the package. Please review the `README.md` file for package installation instructions and how to use the exported R package functions.
 
+```{r, eval=FALSE}
+library(SRE)
+```
+
 ## Dataset
 
-The dataset has `r nrow(sre)` rows and contains the following variables. Displayed are the column names, variable types, and a sample of their values.
+The dataset has `r nrow(SRE)` rows and contains the following variables. Displayed are the column names, variable types, and a sample of their values.
 
 ```{r, results='asis'}
-sre_print <- copy_dt(sre)
+sre_print <- copy_dt(SRE)
 sre_print[, id := as.integer(id)]
 sre_print <- sre_print[order(exp_date)]
-print_data_sample(sre_print, i = seq(1, nrow(sre_print), 73)[1:5], digits = 2)
+print_data_sample(sre_print, n=3, i = seq(1, nrow(sre_print), 73)[1:5], digits = 2)
 ```
 
 # Summary statistics
 
-The current section contains tables of summary statistics computed from the package dataset `sre`.
+The current section contains tables of summary statistics computed from the package dataset `SRE`.
 
 ## Subject pool statistics
 
@@ -85,32 +72,37 @@ Information regarding the participant sample, such as their AQ scores, age, sex,
 ### Participant age
 
 ```{r, results='asis'}
-demographics_summary("sub_age", "aq_category", caption = "Participant age by AQ groups.", digits = 3)
+demographics_summary("sub_age", "aq_category",
+                     caption="Participant age by AQ groups.", digits=3)
 ```
 
 ### Test delay
 
 ```{r, results='asis'}
-demographics_summary("days_elapsed", caption = "Delay between recording and test (days).")
+demographics_summary("days_elapsed",
+                     caption = "Delay between recording and test (days).")
 ```
 
-### AQ scores 
+### AQ scores
 
 ```{r, results='asis'}
-demographics_summary("aq_score", "aq_category", caption = "AQ score by AQ groups.", digits = 3)
-```
-
-```{r, results='asis'}
-demographics_summary("aq_score", "sub_sex", caption = "AQ score by sex.", digits = 3)
+demographics_summary("aq_score", "aq_category",
+                     caption = "AQ score by AQ groups.", digits = 3)
 ```
 
 ```{r, results='asis'}
-demographics_summary("aq_score", c("sub_sex", "aq_category"), caption = "AQ score by AQ groups and sex.", digits = 3)
+demographics_summary("aq_score", "sub_sex",
+                     caption = "AQ score by sex.", digits = 3)
+```
+
+```{r, results='asis'}
+demographics_summary("aq_score", c("sub_sex", "aq_category"),
+                     caption = "AQ score by AQ groups and sex.", digits = 3)
 ```
 
 ## Accuracy summary statistics
 
-Summary statistics from the self-recognition accuracy column (`recog_acc` from the `sre` dataset) are displayed below.
+Summary statistics from the self-recognition accuracy column (`recog_acc` from the `SRE` dataset) are displayed below.
 
 ### Accuracy for each subject, split by AQ group
 
@@ -147,7 +139,7 @@ $$
 \end{aligned}
 $$
 
-The linear predictor $\boldsymbol{\eta}$ is on the logit scale and takes the form of a regression equation with its input as variables of interest and their estimated coefficients. 
+The linear predictor $\boldsymbol{\eta}$ is on the logit scale and takes the form of a regression equation with its input as variables of interest and their estimated coefficients.
 Generalized linear models use a link function $g$ to map the linear predictor to the dependent variable. If the response variable is Gaussian distributed, then the link and activation functions are simply the identity function.
 
 $$
@@ -163,14 +155,14 @@ $$
 The binary step activation function creates the binary response vector $\mathbf{\hat{y}}$ and is a simple thresholding operation at equal probability.
 
 $$
-f(\tilde{y}) = 
+f(\tilde{y}) =
 \begin{cases}
 	0 & \text{for } \tilde{y} < 0.5\\
 	1 & \text{for } \tilde{y} \ge 0.5
 \end{cases}
 $$
 
-Thus, the combined steps from linear predictor value $\eta_i$ to predicted response $\hat{y}_i$ are 
+Thus, the combined steps from linear predictor value $\eta_i$ to predicted response $\hat{y}_i$ are
 
 $$
 \hat{y}_i = f(g^{-1}(\eta_i))
@@ -187,7 +179,11 @@ $$
 
 
 ```{r, results='asis'}
-panda_print(dbinom(structure(0:4, .Names = 0:4), 4, .25, log=TRUE), caption = "Log-likelihoods of getting none to all four responses correct for a specific action, given that there are four options to choose for each trial.")
+panda_print(
+  dbinom(structure(0:4, .Names=0:4), 4, .25, log=TRUE),
+  caption=paste("Log-likelihoods of getting none to all",
+                "four responses correct for a specific action,",
+                "given that there are four options to choose for each trial."))
 ```
 
 <!--
@@ -250,7 +246,7 @@ $$
 \boldsymbol{\beta} = \operatorname{vectorize}(\boldsymbol{\hat{\beta}}')
 $$
 
-The $\boldsymbol{\hat{\beta}}$ matrix is sampled from a Multivariate Normal distribution with mean vector $\mathbf{U}_j\boldsymbol{\gamma}$ and covariance matrix $\boldsymbol{\Sigma}$. Each row $\mathbf{U}_j$ for all $J$ make up the matrix $\mathbf{U}$, and is a $J \times L$ design matrix of the group-level fixed effects (similar to $X$, but predictors specific to groups), with $L$ being the number of group-level predictors (including the intercept term). 
+The $\boldsymbol{\hat{\beta}}$ matrix is sampled from a Multivariate Normal distribution with mean vector $\mathbf{U}_j\boldsymbol{\gamma}$ and covariance matrix $\boldsymbol{\Sigma}$. Each row $\mathbf{U}_j$ for all $J$ make up the matrix $\mathbf{U}$, and is a $J \times L$ design matrix of the group-level fixed effects (similar to $X$, but predictors specific to groups), with $L$ being the number of group-level predictors (including the intercept term).
 
 $$
 \boldsymbol{\hat{\beta}}_j \sim \mathcal{N}(\mathbf{U}_j\boldsymbol{\gamma}, \boldsymbol{\Sigma})
@@ -315,16 +311,13 @@ $$
 \end{aligned}
 $$
 
-```{r, message=FALSE, warning=FALSE, echo=FALSE}
-library(rstanarm)
-```
 
 ## MCMC convergence information
 
 Trace plots of each MCMC chain (to ensure samples are not stuck within some region of the target distribution), $\hat{R}$ statistics for gauging chain divergence ($\hat{R}=1$ is best), and the effective number of samples from the total sample size (a ratio of 1 is best) are shown.
 
 ```{r, echo=FALSE, eval=TRUE}
-sre_models(refit = FALSE, root_dir = NULL)
+sre_models(refit = FALSE, save_dir = NULL)
 seed <- 19850519
 ```
 
@@ -354,7 +347,7 @@ We draw samples from the posterior distributions of predicted values for each ob
 To load the fitted model data and posterior distributions from the `SRE` package, run the `sre_models` function with the following options.
 
 ```{r, echo=TRUE, eval=FALSE}
-sre_models(refit = FALSE, root_dir = NULL)
+sre_models(refit = FALSE, save_dir = NULL)
 seed <- 19850519
 ```
 
@@ -372,8 +365,9 @@ ppd.full.binary <- merge_data_and_posterior(stanreg_full, seed = seed)
 ### Subjects
 
 ```{r, results='asis'}
-posterior_action_acc_subj(ppd.full,
-                           caption = "Each participants' posteriror median accuracy, separated by AQ group intervals.")
+posterior_action_acc_subj(
+  ppd.full,
+  caption = "Each participants' posteriror median accuracy, separated by AQ group intervals.")
 ```
 
 
@@ -415,7 +409,44 @@ contrast_effect_sizes(ppd.full.binary,
                       caption = "Posterior contrast effect size intervals.")
 ```
 
+### Response time
 
+```{r, results="asis"}
+sre_rt <- copy_dt(SRE)
+no_resp <- sre_rt[, recog_rt <= 0]
+rt_remove <- sre_rt[(no_resp), 
+                    .(nSub=length(unique(id)), total=.N), 
+                    .(sub_sex, aq_category)]
+
+panda_print(rt_remove, caption="Trials removed for no response after 40 seconds.")
+```
+
+```{r, results="asis"}
+ppd.rt <- merge_data_and_posterior(stanreg_rt, seed = seed)
+rt_aq_act_contrasts <- posterior_aq_action_contrasts(ppd.rt)
+rt_aq_act_contrasts_results <- posterior_aq_action_intervals(rt_aq_act_contrasts, 
+                                                             print=FALSE)
+panda_print(rt_aq_act_contrasts_results,
+  digits = 2,
+  caption = "Posterior contrast intervals for response times.")
+```
+
+```{r, echo=FALSE}
+rm(ppd.rt, rt_aq_act_contrasts)
+```
+
+
+```{r, results="asis"}
+recog_rt_scaled <- sre_rt[(!no_resp), SRE:::unit_scale(log(recog_rt))]
+
+panda_print(rt_aq_act_contrasts_results[
+                , .(RT_effect=exp(SRE:::rev_unit_scale(median, recog_rt_scaled))),
+                .(contrast, effect, ` `)], 
+            digits=2, 
+            caption="RT contrast effects in original scale (seconds)")
+```
+
+                                     
 ### Viewpoint
 
 Difference in participants' rotations of actions from the baseline position (recorded angle).
@@ -517,43 +548,43 @@ model_vs_data(ppd.null, "M3 (Null)", 4.75, 500, seed = seed)
 
 ```{r save_pub_figs, results='hide', include=FALSE, message=FALSE, warning=FALSE}
 if (getOption("SRE.mejr_pkg")) {
-  options(SRE.mejr_theme = TRUE)
+  old_opt <- options(SRE.mejr_theme = TRUE)
   knit_path_adj <- ifelse("NAMESPACE" %in% list.files(), ".", "..")
   fig_dir <- file.path(knit_path_adj, "inst", "extdata", "figures")
   fig_dir <- SRE:::make_dir(fig_dir)
-  
+
   mejr::save_plot(
     turtles_aq_act_contrasts(aq_act_contrasts),
     file = file.path(fig_dir, "cint_fig"),
-    format = "both",
+    format = "all",
     width = 5,
     height = 3,
     res=600,
     font = getOption("SRE.font_family")
   )
-  
+
   mejr::save_plot(
     boxplot_action_acc(),
     file = file.path(fig_dir, "action_fig"),
-    format = "both",
+    format = "all",
     width = 3.75,
     height = 3.25,
     res=600,
     font = getOption("SRE.font_family")
   )
-  
+
   mejr::save_plot(
     boxplot_aq_action_acc(),
     file = file.path(fig_dir, "aq_act_data_fig"),
-    format = "both",
+    format = "all",
     width = 2.333,
     height = 2.8,
     res=600,
     font = getOption("SRE.font_family")
   )
-}
 
-options(SRE.mejr_theme = FALSE)
+  options(old_opt)
+}
 ```
 
 ## AQ group by action type, bar plot
@@ -588,41 +619,41 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 Loading the package materials
 
-```{r, echo=TRUE, message=FALSE}
+```{r, eval=FALSE, echo=TRUE, message=FALSE}
 library(SRE)
 ```
 
 Calling the package dataset
 
-```{r}
-sre
+```{r, eval=FALSE}
+SRE
 ```
 
 Alternatively, you may import using the `import_sre()` function to customize how the data is imported. If `r raw=TRUE` then this will import the dataset without refactoring the variables or standardizing.
 
-```{r}
-sre <- import_sre(raw=TRUE)
+```{r, eval=FALSE}
+SRE <- import_sre(raw=TRUE)
 ```
 
 ## Refitting the models
 
-To load or refit all the models, use the `sre_models` function. If `root_dir=NULL` and `refit=TRUE`, this will refit the default models and save all refitted models to a directory called `sre_fitted_models` in your OS specific user/home directory. If `refit=FALSE` then it will load the saved models from the package's external data folder.
+To load or refit all the models, use the `sre_models` function. If `save_dir=NULL` and `refit=TRUE`, this will refit the default models and save all refitted models to a directory called `sre_fitted_models` in your OS specific user/home directory. If `refit=FALSE` then it will load the saved models from the package's external data folder.
 
-```{r}
-sre_models(refit = TRUE, root_dir = NULL)
+```{r, eval=FALSE}
+sre_models(refit = TRUE, save_dir = NULL)
 ```
 
-If you specify a path for `root_dir`, all models can be saved and loaded from there. The `debug` option just runs a few iterations for each model.
+If you specify a path for `save_dir`, all models can be saved and loaded from there. The `debug` option just runs a few iterations for each model.
 
-```{r}
+```{r, eval=FALSE}
 model_refit_dir <- "./sre_models_example"
-sre_models(refit = TRUE, root_dir = model_refit_dir, debug = FALSE)
+sre_models(refit = TRUE, save_dir = model_refit_dir, debug = FALSE)
 ```
 
 ### Loading fitted models
 
-```{r}
-sre_models(refit = FALSE, root_dir = NULL)
+```{r, eval=FALSE}
+sre_models(refit = FALSE, save_dir = NULL)
 ```
 
 This will load the following R objects into the global environment.

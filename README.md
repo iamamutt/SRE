@@ -50,11 +50,11 @@ package?SRE
 Viewing package information and a list of exported objects:
 
 ``` r
-help(package = "SRE")
+help(package="SRE")
 # or
 library(help="SRE")
 ```
 
 <!--
-devtools::build(pkg = ".", path = "../tarballs", binary = FALSE, args = c("--md5"))
+devtools::build(pkg=".", path="../tarballs", binary=FALSE, args=c("--md5"))
 -->

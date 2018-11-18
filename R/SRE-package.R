@@ -1,17 +1,18 @@
 #' Self-Recognition Experiment (SRE)
 #'
-#' Descrip
+#' The `SRE` package (Self-recognition Experiment) provides
+#' supplementary analyses and data for the paper
+#' *The Impact of Autistic Traits on Self-Recognition of Body Movements*.
 #'
 #' See `help(package = "SRE")` for a list of functions.
 #'
 #' View the vignette with `browseVignettes(package ="SRE")`.
 #'
-#' @name SRE
+#' @name SRE-package
 #' @docType package
 #' @import data.table
 #' @import rstanarm
 #' @import ggplot2
-#' @import rbaes
 #' @importFrom ggdistribute geom_posterior
 NULL
 
@@ -24,18 +25,15 @@ NULL
 #' @usage lhs \%>\% rhs
 NULL
 
-#' @export
-rbaes::merge_data_and_posterior
-
 #' Self-Recognition Experiment (SRE) dataset
 #'
 #' @format Dataset is an object of class [data.frame].
 #' @section Variables:
 #' - `recog_acc`: self-recognition accuracy
 #' @seealso [import_sre()]
-#' @return `sre` returns an object of class [data.frame].
+#' @return `SRE` returns an object of class [data.frame].
 #' @examples
 #' # get data
 #' library(SRE)
-#' sre_copy <- sre
-"sre"
+#' sre_copy <- SRE
+"SRE"

@@ -29,3 +29,4 @@ SRE.code-workspace
 inst/extdata/figures/*.png
 inst/extdata/
 data
+vignettes/supplementary_files

@@ -4,13 +4,13 @@
 \alias{sre_models}
 \title{Load SRE models into global workspace}
 \usage{
-sre_models(refit = FALSE, root_dir = NULL, debug = FALSE)
+sre_models(refit = FALSE, save_dir = NULL, debug = FALSE)
 }
 \arguments{
-\item{refit}{If \code{TRUE}, then refit package models and save to \code{root_dir}. If
-\code{FALSE}, then load models from \code{root_dir}.}
+\item{refit}{If \code{TRUE}, then refit package models and save to \code{save_dir}. If
+\code{FALSE}, then load models from \code{save_dir}.}
 
-\item{root_dir}{Root directory of subfolders containing saved models.
+\item{save_dir}{Root directory of subfolders containing saved models.
 Defaults to external package data directory.}
 
 \item{debug}{Runs a small number of iterations for debugging purposes.}
