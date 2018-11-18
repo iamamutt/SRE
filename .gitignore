@@ -27,6 +27,7 @@ inst/extdata/figures/*.png
 inst/extdata/figures/*.jpg
 vignettes/supplementary_files
 vignettes/supplementary.tex
+vignettes/supplementary.out
 
 # SRE data
 inst/extdata/

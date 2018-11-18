@@ -40,11 +40,11 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-An updated version of this document and all supplementary materials can be found at the following address.
+An up-to-date version of this document and all supplementary materials can be found at the following repository.
 
 [`https://github.com/iamamutt/SRE`](https://github.com/iamamutt/SRE)
 
-The data can be obtained without installing the package. Please review the `README.md` file for package installation instructions and how to use the exported R package functions.
+The data can be obtained without installing the package. See `data/SRE.rda` or `inst/extdata/sre.csv` for a text version. Please review the `README.md` file for package installation instructions and how to use the exported R package functions.
 
 ```{r, eval=FALSE}
 library(SRE)
@@ -323,19 +323,19 @@ seed <- 19850519
 
 ### Model 1 convergence diagnostics plots
 
-```{r m1_mcmc, eval = TRUE, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2.15}
+```{r m1_mcmc, eval = TRUE, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2}
 mcmc_checks(stanreg_full)
 ```
 
 ### Model 2 convergence diagnostics plots
 
-```{r m2_mcmc, eval = TRUE, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2.15}
+```{r m2_mcmc, eval = TRUE, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2}
 mcmc_checks(stanreg_alt)
 ```
 
 ### Model 3 convergence diagnostics plots
 
-```{r m3_mcmc, eval = TRUE, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2.15}
+```{r m3_mcmc, eval = TRUE, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2}
 mcmc_checks(stanreg_null)
 ```
 
@@ -470,7 +470,7 @@ print_stanreg_results(`M1 (Full)` = stanreg_full)
 
 #### LOO-CV for Model 1
 
-```{r, results='asis'}
+```{r}
 print(loo_full, digits=3)
 ```
 
@@ -484,7 +484,7 @@ print_stanreg_results(`M2 (Alternative)` = stanreg_alt)
 
 #### LOO-CV for Model 2
 
-```{r, results='asis'}
+```{r}
 print(loo_alt, digits=3)
 ```
 
@@ -497,7 +497,7 @@ print_stanreg_results(`M3 (Null)` = stanreg_null)
 
 #### LOO-CV for Model 3
 
-```{r, results='asis'}
+```{r}
 print(loo_null, digits=3)
 ```
 
@@ -536,7 +536,7 @@ compare_rsquared(ppd.full, ppd.alt, ppd.null)
 
 Comparisons between the mean accuracy for each subject and the mean posterior predictive accuracy density for each MCMC sample and subject. The plots are split by AQ group.
 
-```{r, pp_checks, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2.15}
+```{r, pp_checks, message=FALSE, fig.ncol=3, results='hold', fig.subcap=c("1", "2", "3"), fig.height=2, fig.width=2}
 model_vs_data(ppd.full, "M1 (Full)", 4.75, 500, seed = seed)
 model_vs_data(ppd.alt, "M2 (Alt)", 4.75, 500, seed = seed)
 model_vs_data(ppd.null, "M3 (Null)", 4.75, 500, seed = seed)
