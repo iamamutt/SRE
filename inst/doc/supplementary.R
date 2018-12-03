@@ -139,7 +139,7 @@ if (getOption("SRE.mejr_pkg")) {
     boxplot_aq_action_acc(),
     file = file.path(fig_dir, "aq_act_data_fig"),
     format = "all",
-    width = 2.333,
+    width = 2.5,
     height = 2.8,
     res=600,
     font = getOption("SRE.font_family")

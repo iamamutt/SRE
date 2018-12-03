@@ -21,8 +21,7 @@ turtles_aq_act_contrasts <- function(fx) {
       axis.title.y=element_blank(),
       strip.text.y=element_text(
         angle=0, margin=margin(t=0, r=0, b=0, l=0, unit="pt"), hjust=0.5
-      )
-    )
+    ))
 }
 
 #' @export
@@ -44,8 +43,7 @@ boxplot_action_acc <- function() {
       outlier.alpha=0, outlier.size=1, notch=FALSE, show.legend=FALSE) +
     geom_point(
       data=outliers, aes(fill=Actions, colour=Actions), alpha=0.5, size=0.5,
-      show.legend=FALSE, position=position_jitter(0.25, 0.02)
-    ) +
+      show.legend=FALSE, position=position_jitter(0.25, 0.02)) +
     scale_fill_manual(values=opts$c_pal[c(1, 5)]) +
     scale_colour_manual(values=opts$c_pal[c(2, 4)]) +
     coord_flip(ylim=c(0, 1)) + facet_grid(Actions ~ ., space="free", scales="free") +
@@ -61,28 +59,32 @@ boxplot_aq_action_acc <- function() {
 
   opts <- plot_setup()
 
-  ggplot(dt) + aes(x=AQ, y=acc) +
+  dt[, Actions := factor(
+    Actions, c("Simple", "Complex", "."),
+    c("Simple actions", "Complex actions", "."))]
+  ggplot(dt) + aes(x=Actions, y=acc) +
     geom_boxplot(
-      aes(fill=Actions, colour=Actions),
+      aes(fill=AQ, colour=AQ),
       size=opts$lwd, width=0.333,
       position=position_dodge(width=0.5), outlier.size=0.7, outlier.stroke=0.5,
       outlier.shape=21, notch=FALSE, show.legend=TRUE
     ) +
-    geom_point(
-      aes(fill=Actions),
+    geom_point(aes(fill=AQ),
       shape=20, alpha=0.5, colour=opts$blk, show.legend=FALSE,
       position=position_jitterdodge(
         jitter.width=0.275, jitter.height=0, dodge.width=0.5
-      )
-    ) +
-    scale_fill_manual(values=opts$c_pal[c(1, 5)]) +
-    scale_colour_manual(values=opts$c_pal[c(2, 4)]) +
+    )) +
+    scale_fill_manual(values=c("#B96B70", "#528DAC")) +
+    scale_colour_manual(values=c("#6D1E23", "#114460")) +
     scale_y_continuous(breaks=seq(0, 1, .1)) + coord_cartesian(ylim=c(0, 1)) +
     labs(y="Self-recognition accuracy", x="AQ score group") +
     theme(
       legend.position=c(1, 0), legend.justification=c("right", "bottom"),
-      legend.box.background=element_blank(), legend.title=element_blank()
-    )
+      legend.direction="vertical", legend.title.align=0.5,
+      legend.title=element_text(
+        vjust=0, margin=margin(t=0, r=0, b=0, l=0, unit="pt"), hjust=0
+      ),
+      legend.box.background=element_blank(), axis.title.x=element_blank())
 }
 
 #' @export
@@ -99,8 +101,7 @@ plot_action_post_acc <- function(fx) {
     ) +
     geom_point(
       data=acc_dta, aes(x=.y, y=action), color=opts$blk,
-      position=position_nudge(y=-0.333), shape=21, size=1, fill="#FFFFFF"
-    ) +
+      position=position_nudge(y=-0.333), shape=21, size=1, fill="#FFFFFF") +
     scale_x_continuous(breaks=seq(-1, 1, .1)) +
     coord_cartesian(xlim=c(.25, 1)) + labs(x="Self-recognition accuracy") +
     theme(
@@ -109,8 +110,7 @@ plot_action_post_acc <- function(fx) {
       panel.spacing.y=unit(12, "pt"),
       strip.text.y=element_text(
         angle=0, margin=margin(t=0, r=0, b=0, l=0, unit="pt"), hjust=0.5
-      )
-    )
+    ))
 }
 
 #' @export
@@ -156,8 +156,7 @@ hist_plot_acc <- function() {
     theme(
       legend.position="none", strip.background=element_blank(),
       strip.text=element_blank(), panel.spacing.x=unit(12, "pt"),
-      panel.spacing.y=unit(12, "pt")
-    )
+      panel.spacing.y=unit(12, "pt"))
 }
 
 #' @export
@@ -186,8 +185,7 @@ interaction_plot_bar <- function() {
         action_category,
         levels=c("complex actions", "simple actions"),
         labels=c("complex", "simple")
-      )
-    )] %>%
+    ))] %>%
     .[]
 
   opts <- plot_setup()
@@ -196,8 +194,7 @@ interaction_plot_bar <- function() {
     geom_hline(aes(yintercept=.25), color=opts$gry, size=0.333, linetype=1) +
     geom_bar(
       stat="identity", position=position_dodge(width=opts$dodge_w), size=1,
-      color=NA, width=0.67, aes(fill=aq_category)
-    ) +
+      color=NA, width=0.67, aes(fill=aq_category)) +
     geom_linerange(
       stat="identity", position=position_dodge(width=opts$dodge_w), size=0.8,
       color="white", aes(group=aq_category, ymin=y - sem, ymax=y)
@@ -216,8 +213,7 @@ interaction_plot_bar <- function() {
       legend.title=element_blank(), legend.text=element_text(size=rel(0.7)),
       legend.background=element_blank(), legend.box.background=element_blank(),
       legend.key.width=unit(16, "pt"), legend.key.height=unit(16, "pt"),
-      legend.text.align=1
-    )
+      legend.text.align=1)
 }
 
 #' @export
@@ -237,10 +233,8 @@ interaction_scatter <- function() {
     geom_segment(
       data=sre_sub1_means, aes(
         x=aql, y=p, yend=p, xend=aqu,
-        color=Actions
-      ), linetype=2, size=0.3,
-      show.legend=FALSE
-    ) +
+        color=Actions), linetype=2, size=0.3,
+      show.legend=FALSE) +
     stat_smooth(
       aes(color=Actions),
       se=FALSE, method="lm", fill=rgb(0.94, 0.94, 0.94, 0.5)
@@ -258,8 +252,7 @@ interaction_scatter <- function() {
       legend.direction="horizontal", legend.justification=c("left", "bottom"),
       legend.title=element_text(size=rel(0.5), hjust=0),
       legend.text=element_text(size=rel(0.5)), legend.spacing=grid::unit(0, "pt"),
-      legend.background=element_blank(), legend.box.background=element_blank()
-    )
+      legend.background=element_blank(), legend.box.background=element_blank())
 }
 
 # model checks ------------------------------------------------------------
@@ -345,8 +338,7 @@ plot_setup <- function(font_size=NULL) {
   if (getOption("SRE.mejr_theme")) {
     theme_set(ggdistribute::theme_mejr(
       base_size=font_size %||% 10, madj=1,
-      font_family=getOption("SRE.font_family")
-    ))
+      font_family=getOption("SRE.font_family")))
   } else {
     theme_set(theme_classic(base_size=font_size %||% 12, base_family="serif"))
   }
@@ -354,14 +346,12 @@ plot_setup <- function(font_size=NULL) {
   theme_update(
     plot.margin=margin(t=2, r=4, b=2, l=2, unit="pt"),
     panel.border=element_blank(), axis.title.y=element_text(hjust=0.5),
-    legend.box.background=element_blank(), legend.background=element_blank()
-  )
+    legend.box.background=element_blank(), legend.background=element_blank())
 
   list(
     blk=gray(0.4), gry=gray(0.84), c_pal=c(
       "#EDFADC", "#9EAD87", "#FDFFFA", "#A376AD",
-      "#F4DCFA"
-    ), dodge_w=0.75, lwd=1 / 3
+      "#F4DCFA"), dodge_w=0.75, lwd=1 / 3
   )
 }
 
@@ -373,8 +363,7 @@ gg_overrides <- function(gg, n_colors=5) {
       legend.position="bottom", plot.title=element_text(
         hjust=0.5, size=rel(0.9)
       ),
-      legend.title=element_blank()
-    ))
+      legend.title=element_blank()))
 }
 
 change_geom_aes <- function(p, layer, ...) {
