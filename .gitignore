@@ -30,6 +30,6 @@ vignettes/supplementary.tex
 vignettes/supplementary.out
 
 # SRE data
-inst/extdata/
-data/
+# inst/extdata/
+# data/
 

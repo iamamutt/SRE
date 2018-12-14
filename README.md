@@ -2,8 +2,6 @@
 
 The `SRE` package (Self-recognition Experiment) provides supplementary analyses and data for the paper *The Impact of Autistic Traits on Self-Recognition of Body Movements*.
 
-**DATA CURRENTLY UNAVAILABLE UNTIL ACCEPTED**
-
 ## Dependencies
 
 - R: <https://www.r-project.org/>
